@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apan Ignition v1</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; padding: 15px; }
+    .container { max-width: 600px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; }
+    header h1 { color: #3b82f6; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+    .status-card { background: #1e293b; border-radius: 10px; padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #334155; }
+    .status-item { text-align: center; }
+    .status-value { font-size: 20px; font-weight: bold; color: #22c55e; }
+    .card { background: #1e293b; border-radius: 10px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
+    .card h2 { font-size: 16px; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+    .form-group { margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    label { font-size: 14px; color: #cbd5e1; }
+    input[type="number"], select { background: #0f172a; border: 1px solid #475569; color: #fff; padding: 8px; border-radius: 5px; width: 100px; text-align: center; }
+    .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #22c55e; }
+    input:checked + .slider:before { transform: translateX(22px); }
+    .btn { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; font-size: 15px; }
+    .btn:active { background: #1d4ed8; }
+    .table-container { max-height: 250px; overflow-y: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; }
+    th, td { padding: 6px; border: 1px solid #334155; }
+    th { background: #0f172a; color: #94a3b8; position: sticky; top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Apan Ignition v1</h1>
+      <p style="font-size: 12px; color: #64748b;">Wi-Fi Tuning System</p>
+    </header>
+
+    <!-- 6. Tegangan & Status Live -->
+    <div class="status-card">
+      <div class="status-item">
+        <div style="font-size: 11px; color: #94a3b8;">RPM LIVE</div>
+        <div class="status-value" id="liveRpm">0</div>
+      </div>
+      <div class="status-item">
+        <div style="font-size: 11px; color: #94a3b8;">TEGANGAN</div>
+        <div class="status-value" id="liveVolt">0.0 V</div>
+      </div>
+      <div class="status-item">
+        <div style="font-size: 11px; color: #94a3b8;">TIMING</div>
+        <div class="status-value" id="liveTiming">0°</div>
+      </div>
+    </div>
+
+    <!-- 3. Live Tuning Mode -->
+    <div class="card">
+      <h2>3. Live Tuning Control</h2>
+      <div class="form-group">
+        <label for="liveTuneToggle">Realtime Live Tuning</label>
+        <label class="switch">
+          <input type="checkbox" id="liveTuneToggle" onchange="toggleLiveTuning()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- 4. Limiter Max 25000 RPM & 5. Backfire Limit -->
+    <div class="card">
+      <h2>4 & 5. Limiter & Backfire Control</h2>
+      <div class="form-group">
+        <label>Limiter Max (Max 25000 RPM)</label>
+        <input type="number" id="maxLimiter" min="1000" max="25000" value="12000" step="250">
+      </div>
+      <div class="form-group">
+        <label>Blackfire / Backfire Limit Mode</label>
+        <label class="switch">
+          <input type="checkbox" id="backfireToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- 2. Idle Rumble Mode (1-12) -->
+    <div class="card">
+      <h2>2. Mode Idle Rumble</h2>
+      <div class="form-group">
+        <label>Idle Rumble Mode</label>
+        <label class="switch">
+          <input type="checkbox" id="rumbleToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Level Rumble (1 - 12)</label>
+        <select id="rumbleLevel">
+          <option value="1">Level 1</option><option value="2">Level 2</option>
+          <option value="3">Level 3</option><option value="4">Level 4</option>
+          <option value="5">Level 5</option><option value="6">Level 6</option>
+          <option value="7">Level 7</option><option value="8">Level 8</option>
+          <Modul yang Anda tunjukkan pada gambar adalah **ESP8266 (ESP-12F)**. Modul ini mendukung **Wi-Fi** (Access Point / Web Server), sehingga Anda tidak memerlukan Web Bluetooth API maupun hosting GitHub Pages. 
+
+ESP8266 bisa langsung memancarkan jaringan Wi-Fi (Access Point) dan menyediakan web aplikasi secara independen. Ketika HP Anda terhubung ke Wi-Fi ESP8266 dan membuka alamat IP (contoh: `http://192.168.4.1`), tampilan web bernama **Apan Ignition V1** akan langsung muncul.
+
+Berikut adalah kode lengkap HTML + JavaScript responsif (dengan tampilan *dark mode* modern) yang mencakup seluruh 6 fitur sesuai permintaan Anda.
+
+---
+
+### Kode HTML (`index.html`)
+
+Simpan file ini di GitHub atau masukkan langsung ke dalam firmware ESP8266 (SPIFFS / LittleFS / PROGMEM):
+
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apan Ignition V1</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #00e676;
+            --text-color: #ffffff;
+            --text-secondary: #b0b0b0;
+            --danger-color: #ff5252;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 10px 0;
+            border-bottom: 2px solid var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: var(--accent-color);
+            letter-spacing: 1.5px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ff1744;
+            margin-right: 8px;
+        }
+
+        .status-indicator.connected {
+            background-color: var(--accent-color);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 16px;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .live-val {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .unit {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: #2a2a2a;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .table-container {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+
+        th {
+            background-color: #2a2a2a;
+            color: var(--accent-color);
+            position: sticky;
+            top: 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--accent-color);
+            color: #000;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #444;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>APAN IGNITION V1</h1>
+    </div>
+
+    <!-- Status Koneksi & Tegangan -->
+    <div class="status-bar">
+        <div>
+            <span class="status-indicator" id="statusDot"></span>
+            <span id="statusText" style="font-size: 12px;">Terhubung (Wi-Fi)</span>
+        </div>
+        <div>
+            <span style="font-size: 12px; color: var(--text-secondary);">Tegangan: </span>
+            <span id="valVoltage" style="font-weight: bold; color: var(--accent-color);">--.-</span> <span class="unit">V</span>
+        </div>
+    </div>
+
+    <!-- Live Tuning Dashboard -->
+    <div class="card">
+        <h2>3. Live Tuning Dashboard</h2>
+        <div class="grid-2">
+            <div style="text-align: center;">
+                <label>RPM Saat Ini</label>
+                <div class="live-val" id="valRpm">0</div>
+                <span class="unit">RPM</span>
+            </div>
+            <div style="text-align: center;">
+                <label>Pengapian Aktif</label>
+                <div class="live-val" id="valDegree" style="color: var(--accent-color);">0°</div>
+                <span class="unit">BTDC</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config Limiter & Blackfire -->
+    <div class="card">
+        <h2>4 & 5. Limiter & Backfire Control</h2>
+        <div class="form-group">
+            <label>Max RPM Limiter (Maks. 25.000 RPM)</label>
+            <input type="number" id="inputLimiter" min="1000" max="25000" step="250" value="12000">
+        </div>
+        <div class="toggle-container" style="margin-top: 15px;">
+            <label style="margin: 0;">Mode Backfire (Pop & Bang)</label>
+            <label class="switch">
+                <input type="checkbox" id="toggleBackfire">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Mode Idle Rumble -->
+    <div class="card">
+        <h2>2. Mode Idle Rumble</h2>
+        <div class="toggle-container" style="margin-bottom: 15px;">
+            <label style="margin: 0;">Aktifkan Idle Rumble</label>
+            <label class="switch">
+                <input type="checkbox" id="toggleRumble">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="form-group">
+            <label>Level Rumble (1 - 12)</label>
+            <select id="selectRumbleLevel">
+                <!-- Level 1 hingga 12 -->
+                <script>
+                    for(let i=1; i<=12; i++) {
+                        document.write(`<option value="${i}">Level ${i}</option>`);
+                    }
+                </script>
+            </select>
+        </div>
+    </div>
+
+    <!-- Mapping Pengapian / 250 RPM -->
+    <div class="card">
+        <h2>1. Mapping Pengapian (/250 RPM)</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>RPM</th>
+                        <th>Derajat (°BTDC)</th>
+                    </tr>
+                </thead>
+                <tbody id="mapTableBody">
+                    <!-- Ditampilkan secara otomatis dari JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tombol Kirim Configuration -->
+    <button onclick="sendConfiguration()">KIRIM SETTINGAN KE CDI</button>
+
+    <script>
+        // Inisialisasi tabel mapping dari 1000 RPM hingga 25000 RPM dengan kelipatan 250 RPM
+        const tableBody = document.getElementById('mapTableBody');
+        for (let rpm = 1000; rpm <= 25000; rpm += 250) {
+            let row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${rpm}</td>
+                <td><input type="number" id="rpm_${rpm}" min="0" max="60" value="15" style="width: 70px; text-align: center; padding: 4px;"></td>
+            `;
+            tableBody.appendChild(row);
+        }
+
+        // Live Tuning - Menerima Data Telemetri Real-time dari ESP8266 via HTTP GET
+        function updateLiveTelemetry() {
+            fetch('/telemetry')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('valRpm').innerText = data.rpm;
+                    document.getElementById('valDegree').innerText = data.degree + '°';
+                    document.getElementById('valVoltage').innerText = data.voltage.toFixed(1);
+                    
+                    document.getElementById('statusDot').classList.add('connected');
+                    document.getElementById('statusText').innerText = 'Terhubung (Wi-Fi)';
+                })
+                .catch(err => {
+                    document.getElementById('statusDot').classList.remove('connected');
+                    document.getElementById('statusText').innerText = 'Terputus';
+                });
+        }
+
+        // Ambil telemetri setiap 200 ms (Live Tuning)
+        setInterval(updateLiveTelemetry, 200);
+
+        // Fungsi Pengiriman Seluruh Konfigurasi ke ESP8266
+        function sendConfiguration() {
+            let configData = {
+                limiter: parseInt(document.getElementById('inputLimiter').value),
+                backfire: document.getElementById('toggleBackfire').checked,
+                rumbleOn: document.getElementById('toggleRumble').checked,
+                rumbleLevel: parseInt(document.getElementById('selectRumbleLevel').value),
+                map: []
+            };
+
+            for (let rpm = 1000; rpm <= 25000; rpm += 250) {
+                let degVal = parseInt(document.getElementById(`rpm_${rpm}`).value) || 0;
+                configData.map.push({ rpm: rpm, degree: degVal });
+            }
+
+            fetch('/saveConfig', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(configData)
+            })
+            .then(res => res.text())
+            .then(msg => alert('Settingan Apan Ignition V1 Berhasil Disimpan!'))
+            .catch(err => alert('Gagal mengirim konfigurasi. Pastikan koneksi Wi-Fi terhubung.'));
+        }
+    </script>
+</body>
+            </html>
+          
